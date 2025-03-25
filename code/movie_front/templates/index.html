@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prédiction de Genre de Film</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Prédiction du Genre de Film</h1>
+        <form id="uploadForm">
+            <input type="file" id="imageInput" name="file" accept="image/*" required>
+            <button type="submit">Envoyer</button>
+        </form>
+        <div id="previewContainer">
+            <img id="imagePreview" src="#" alt="Prévisualisation" style="display:none;">
+        </div>
+        <p id="predictionText"></p>
+    </div>
+
+    <script>
+        document.getElementById("imageInput").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById("imagePreview").src = e.target.result;
+                    document.getElementById("imagePreview").style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById("uploadForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            formData.append("file", document.getElementById("imageInput").files[0]);
+
+            fetch("/", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("predictionText").innerText = "Prédiction : " + data.prediction;
+            })
+            .catch(error => console.error("Erreur :", error));
+        });
+    </script>
+</body>
+</html>
