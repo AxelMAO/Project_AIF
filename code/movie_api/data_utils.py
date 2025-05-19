@@ -3,11 +3,6 @@ from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from sklearn.preprocessing import LabelEncoder
 
-
-
-
-
-
 class ImageAndPathDataset(ImageFolder):
 
     def __init__(
