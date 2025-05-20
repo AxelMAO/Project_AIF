@@ -9,7 +9,8 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 # Assurez-vous que le dossier uploads existe
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-API_URL = "http://127.0.0.1:5000/predict"  # Adresse de ton API Flask de classification
+#API_URL = "http://127.0.0.1:5000/predict"  # Adresse de ton API Flask de classification
+API_URL = "http://movie_api:5000/predict"  # Adresse de ton API Flask de classification
 
 @app.route("/", methods=["GET", "POST"])
 def index():

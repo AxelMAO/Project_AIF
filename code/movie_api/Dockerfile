@@ -8,6 +8,10 @@ WORKDIR /app
 COPY . /app
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Script to download the model weights
+RUN python downloads_weights.py
+
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
 
@@ -15,4 +19,5 @@ EXPOSE 5000
 ENV FLASK_ENV=production
 
 # Run mnist_api.py when the container launches
-CMD ["python", "movie_api.py", "--model_path", "weights/movie_net.pth"]
+#CMD ["python", "movie_api.py", "--model_path", "weights/movie_net.pth"]
+CMD ["python", "movie_api.py"]
