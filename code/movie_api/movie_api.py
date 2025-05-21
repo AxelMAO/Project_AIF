@@ -19,7 +19,8 @@ model = models.mobilenet_v3_small(pretrained=False)
 model.classifier = torch.nn.Linear(576, 10)
 
 # Load the model
-model.load_state_dict(torch.load(model_path))
+#model.load_state_dict(torch.load(model_path))
+model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 #model.eval()
 
 model.to(device)
