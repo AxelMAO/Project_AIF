@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="fr">
 
 <head>
@@ -7,49 +6,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prédiction de Genre de Film</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        #recommendationImages img {
+            width: 100px;
+            height: auto;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Prédiction du Genre de Film</h1>
+        <h1>Prédiction de Genre de Film</h1>
+
         <form id="uploadForm">
             <input type="file" id="imageInput" name="file" accept="image/*" required>
-            <button type="submit">Envoyer</button>
+            <button type="submit">Prédire le genre</button>
+            <button type="button" id="recommendButton">Recommander des films similaires</button>
         </form>
-        <div id="previewContainer">
-            <img id="imagePreview" src="#" alt="Prévisualisation" style="display:none;">
+
+        <div id="previewContainer" style="margin-top: 20px;">
+            <h2>Aperçu de l'image</h2>
+            <img id="imagePreview" src="#" alt="Prévisualisation" style="display:none; max-width: 300px;">
         </div>
-        <p id="predictionText"></p>
+
+        <p id="predictionText" style="font-weight: bold;"></p>
+
+        <div id="recommendations" style="margin-top: 30px;">
+            <h2>Films similaires</h2>
+            <div id="recommendationImages" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+        </div>
+
+
+
     </div>
 
+
+
     <script>
-        document.getElementById("imageInput").addEventListener("change", function(event) {
+        const imageInput = document.getElementById("imageInput");
+        const imagePreview = document.getElementById("imagePreview");
+        const predictionText = document.getElementById("predictionText");
+        const recommendationImages = document.getElementById("recommendationImages");
+
+        imageInput.addEventListener("change", function (event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById("imagePreview").src = e.target.result;
-                    document.getElementById("imagePreview").style.display = "block";
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = "block";
                 };
                 reader.readAsDataURL(file);
             }
         });
 
-        document.getElementById("uploadForm").addEventListener("submit", function(event) {
+        document.getElementById("uploadForm").addEventListener("submit", function (event) {
             event.preventDefault();
+
+            const file = imageInput.files[0];
+            if (!file) {
+                alert("Veuillez choisir une image.");
+                return;
+            }
+
             const formData = new FormData();
-            formData.append("file", document.getElementById("imageInput").files[0]);
+            formData.append("file", file);
 
             fetch("/", {
                 method: "POST",
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("predictionText").innerText = "Prédiction : " + data.prediction;
+                .then(response => response.json())
+                .then(data => {
+                    predictionText.innerText = "Prédiction : " + data.prediction;
+                })
+                .catch(error => console.error("Erreur de prédiction :", error));
+        });
+
+        document.getElementById("recommendButton").addEventListener("click", function () {
+            const file = imageInput.files[0];
+            if (!file) {
+                alert("Veuillez choisir une image.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            fetch("/recommend_poster", {
+                method: "POST",
+                body: formData
             })
-            .catch(error => console.error("Erreur :", error));
+                .then(response => response.json())
+                .then(data => {
+                    recommendationImages.innerHTML = "";
+                    data.recommendations.forEach(path => {
+                        const img = document.createElement("img");
+                        img.src = path;
+                        recommendationImages.appendChild(img);
+                    });
+                })
+                .catch(error => console.error("Erreur de recommandation :", error));
         });
     </script>
 </body>
+
 </html>
