@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+from flask import send_from_directory
 import requests
 import os
 
@@ -6,11 +7,12 @@ app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# Assurez-vous que le dossier uploads existe
+# Créer le dossier d'upload s'il n'existe pas
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-#API_URL = "http://127.0.0.1:5000/predict"  # Adresse de ton API Flask de classification
-API_URL = "http://movie_api:5000/predict"  # Adresse de ton API Flask de classification
+# URL vers les endpoints de l'API backend (conteneur "movie_api")
+PREDICT_API_URL = "http://movie_api:5000/predict"
+RECOMMEND_API_URL = "http://movie_api:5000/recommend_poster"
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -22,23 +24,50 @@ def index():
         if file.filename == "":
             return jsonify({"error": "Fichier non valide"}), 400
         
-        # Sauvegarde temporaire du fichier
+        # Sauvegarde temporaire
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
         file.save(filepath)
 
-        # Envoie de l’image à l’API Flask
         with open(filepath, "rb") as img:
-            response = requests.post(API_URL, data=img)
+            response = requests.post(PREDICT_API_URL, data=img)
 
         if response.status_code == 200:
             prediction = response.json().get("prediction", "Erreur")
         else:
             prediction = "Erreur de prédiction"
 
-        return jsonify({"prediction": prediction, "image_url": filepath})
+        return jsonify({"prediction": prediction})
 
     return render_template("index.html")
 
+
+@app.route("/recommend_poster", methods=["POST"])
+def recommend():
+    if "file" not in request.files:
+        return jsonify({"error": "Aucun fichier trouvé"}), 400
+
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "Fichier vide"}), 400
+
+    # Sauvegarde temporaire
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+    file.save(filepath)
+
+    with open(filepath, "rb") as img:
+        response = requests.post(RECOMMEND_API_URL, data=img)
+
+    if response.status_code == 200:
+        result = response.json()
+        recommendations = result.get("recommendations", [])
+    else:
+        recommendations = []
+
+    return jsonify({"recommendations": recommendations})
+
+@app.route('/MLP-20M/<path:filename>')
+def serve_mlp20m(filename):
+    return send_from_directory('MLP-20M', filename)
+
 if __name__ == "__main__":
-    #app.run(debug=True, port=8000)
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True)
