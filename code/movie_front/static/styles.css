@@ -101,3 +101,28 @@ button:hover {
     border-radius: 8px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
 }
+
+.plot-recommendations {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.plot-recommendation-item {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.plot-recommendation-item h3 {
+    margin: 0 0 5px;
+    color: #2c89ff;
+}
+
+.plot-recommendation-item p {
+    margin: 0;
+    font-size: 0.95em;
+    color: #555;
+}

@@ -13,6 +13,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # URL vers les endpoints de l'API backend (conteneur "movie_api")
 PREDICT_API_URL = "http://movie_api:5000/predict"
 RECOMMEND_API_URL = "http://movie_api:5000/recommend_poster"
+RECOMMEND_PLOT_API_URL = "http://movie_api:5000/recommend_plot_movie"
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -68,6 +69,37 @@ def recommend():
 @app.route('/MLP-20M/<path:filename>')
 def serve_mlp20m(filename):
     return send_from_directory('MLP-20M', filename)
+
+
+
+@app.route("/recommend_plot", methods=["POST"])
+def recommend_plot():
+    data = request.get_json()
+
+    # Récupération de la description et de la méthode
+    description = data.get("description", "")
+    method = data.get("method", "Bert")  # Valeur par défaut = BERT
+
+    if not description:
+        return jsonify({"error": "Aucune description fournie"}), 400
+
+    payload = {
+        "description": description,
+        "method": method
+    }
+
+    try:
+        response = requests.post(RECOMMEND_PLOT_API_URL, json=payload)
+        if response.status_code == 200:
+            results = response.json().get("recommendations", [])
+        else:
+            return jsonify({"error": "Erreur lors de l'appel à l'API"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Erreur interne : {str(e)}"}), 500
+
+    return jsonify({"recommendations": results})
+    
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)
