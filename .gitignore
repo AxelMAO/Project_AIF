@@ -1,9 +1,10 @@
 MovieGenre
 code/weights
 code/movie_api/weights
-code/movie_api/movies_metadata.csv
-code/movie_api/tfidf_index.ann
-code/movie_api/tfidf_index5000.ann
 code/movie_api/bert_index.ann
+code/movie_api/movies_metadata.csv
 code/movie_api/movies_overview_titles.csv
 code/movie_api/movies_overview_titles.pkl
+code/movie_api/tfidf_index.ann
+code/movie_api/tfidf_index5000.ann
+code/movie_api/tfidf_vectorizer5000.pkl
