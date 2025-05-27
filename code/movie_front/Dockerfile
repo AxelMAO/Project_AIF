@@ -7,7 +7,7 @@ WORKDIR /app
 COPY . /app
 
 # Installer curl et unzip
-RUN apt-get update && apt-get install -y curl unzip && rm -rf /var/lib/apt/lists/*
+#RUN apt-get update && apt-get install -y curl unzip && rm -rf /var/lib/apt/lists/*
 
 # Installer les dépendances python
 RUN pip install --no-cache-dir -r requirements.txt
@@ -24,7 +24,7 @@ RUN python downloads_weights.py
 #RUN rm /app/MLP-20M.zip
 
 # Expose le port 8000
-EXPOSE 8000
+EXPOSE 9000
 
 # Définit la variable d'environnement Flask en production
 ENV FLASK_ENV=production

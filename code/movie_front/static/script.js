@@ -74,6 +74,8 @@ document.getElementById("recommendButton").addEventListener("click", function ()
 // Recommandation par résumé
 document.getElementById("recommendPlotButton").addEventListener("click", function () {
     const plot = plotInput.value.trim();
+    const method = document.getElementById("embeddingMethod").value;
+
     if (!plot) {
         alert("Veuillez saisir un résumé de film.");
         return;
@@ -84,7 +86,9 @@ document.getElementById("recommendPlotButton").addEventListener("click", functio
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ plot: plot })
+        body: JSON.stringify({ description: plot,
+            method : method
+         })
     })
         .then(response => response.json())
         .then(data => {

@@ -12,7 +12,7 @@ services:
       context: ./movie_front
     container_name: movie_front
     ports:
-      - "8000:8000"
+      - "9000:9000"
     restart: unless-stopped
     depends_on:
       - api

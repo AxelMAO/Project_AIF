@@ -33,6 +33,11 @@
         <div class="recommendation-block">
             <h2>Recommandation par résumé</h2>
             <textarea id="plotInput" rows="4" cols="50" placeholder="Entrez un résumé de film..."></textarea><br>
+            <select id="embeddingMethod">
+                <option value="Bert">BERT</option>
+                <option value="Bag of Words">Bag of Words</option>
+            </select>
+            
             <button type="button" id="recommendPlotButton">Recommander par résumé</button>
             <div id="plotRecommendations" class="plot-recommendations"></div>
         </div>

@@ -193,7 +193,7 @@ def recommend_plot_movie():
     if method == "Bag of Words":
         query_vector = bagOfWords_vectorizer.transform([text]).toarray()[0]
         results = search_overview_title(query_vector, bagOfWords_index, k=5)
-    elif method == "bert":
+    elif method == "Bert":
         query_vector = get_embeddings_bert(text)
         results = search_overview_title(query_vector, bert_index, k=5)
     else:
