@@ -4,11 +4,15 @@ import torchvision.transforms as transforms
 import io
 import os
 import torchvision.models as models
+import pandas as pd
+import pickle
 from flask import Flask, jsonify, request
 from PIL import Image
 from torchvision import datasets
 from annoy import AnnoyIndex
-import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from transformers import DistilBertTokenizer, DistilBertModel
+
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -48,8 +52,6 @@ genres_dict = {0 : 'action',1 :'animation', 2 : 'comedy', 3 : 'documentary',
 #Preparation for the Part 2 for the recommendation system
 
 
-
-
 df_path = pd.read_parquet(os.path.join(feature_extraction_path, 'images_paths.parquet'))
 annoy_index = AnnoyIndex(576, 'angular')
 annoy_index.load(os.path.join(feature_extraction_path, 'rec_imdb.ann'))
@@ -71,6 +73,40 @@ modelFeatureExtraction  = torch.nn.Sequential(
     mobilenet.avgpool,
     torch.nn.Flatten(),
 ).cpu()
+
+
+#Preparation for the Part 3 for the recommendation system based on the plot of the movie
+
+bert_index = AnnoyIndex(768, 'angular')
+bert_index.load(os.path.join(feature_extraction_path, 'bert_index.ann'))
+bagOfWords_index = AnnoyIndex(5000, 'angular')
+bagOfWords_index.load(os.path.join(feature_extraction_path, 'tfidf_index5000.ann'))
+
+bagOfWords_vectorizer = TfidfVectorizer(max_features=5000, stop_words='english')
+
+with open(os.path.join(feature_extraction_path, 'tfidf_vectorizer5000.pkl'), 'rb') as f:
+    bagOfWords_vectorizer = pickle.load(f)
+
+
+df_movies_TO = pd.read_csv(os.path.join(feature_extraction_path, 'movies_overview_titles.csv'))
+
+
+
+tokenizer_bert = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+model_bert = DistilBertModel.from_pretrained('distilbert-base-uncased')
+
+def get_embeddings_bert(text):
+    inputs = tokenizer_bert(text, return_tensors='pt', truncation=True, padding=True, max_length=512)
+    with torch.no_grad():
+        outputs = model_bert(**inputs)
+    return outputs.last_hidden_state.mean(dim=1).squeeze().numpy()
+
+
+
+def search_overview_title(query_vector, annotated_index, k=5):
+    indices = annotated_index.get_nns_by_vector(query_vector, k)
+    titles_and_overviews = df_movies_TO.iloc[indices][['title', 'overview']]. to_dict(orient='records')
+    return titles_and_overviews
 
 
 
@@ -143,6 +179,27 @@ def recommend_poster():
     
     return jsonify({"recommendations": paths})
 
+
+@app.route('/recommend_plot_movie', methods=['POST'])
+def recommend_plot_movie():
+    # Get the plot from the request
+    data = request.get_json()
+    text = data.get("description", "")
+    method = data.get("method", "Bert")  # default to Bert
+
+    if not text:
+        return jsonify({"error": "No description provided"}), 400
+
+    if method == "Bag of Words":
+        query_vector = bagOfWords_vectorizer.transform([text]).toarray()[0]
+        results = search_overview_title(query_vector, bagOfWords_index, k=5)
+    elif method == "bert":
+        query_vector = get_embeddings_bert(text)
+        results = search_overview_title(query_vector, bert_index, k=5)
+    else:
+        return jsonify({"error": "Unknown method"}), 400
+
+    return jsonify({"recommendations": results})
 
 
 
