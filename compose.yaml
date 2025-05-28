@@ -1,0 +1,18 @@
+services:
+  api:
+    build:
+      context: ./ai_services
+    container_name: ai_services
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+  front:
+    build:
+      context: ./webapp
+    container_name: webapp
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    depends_on:
+      - api
