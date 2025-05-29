@@ -11,35 +11,54 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # URL vers les endpoints de l'API backend (conteneur "ai_services")
-PREDICT_API_URL = "http://ai_services:5000/predict"
-RECOMMEND_API_URL = "http://ai_services:5000/recommend_poster"
-RECOMMEND_PLOT_API_URL = "http://ai_services:5000/recommend_plot_movie"
+#PREDICT_API_URL = "http://ai_services:5000/predict"
+PREDICT_API_URL = "http://127.0.0.1:5000/predict"
+#RECOMMEND_API_URL = "http://ai_services:5000/recommend_poster"
+RECOMMEND_API_URL = "http://127.0.0.1:5000/recommend_poster"
+#RECOMMEND_PLOT_API_URL = "http://ai_services:5000/recommend_plot_movie"
+RECOMMEND_PLOT_API_URL = "http://127.0.0.1:5000/recommend_plot_movie"
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def index():
-    if request.method == "POST":
-        if "file" not in request.files:
-            return jsonify({"error": "Aucun fichier trouvé"}), 400
-        
-        file = request.files["file"]
-        if file.filename == "":
-            return jsonify({"error": "Fichier non valide"}), 400
-        
-        # Sauvegarde temporaire
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
-        file.save(filepath)
-
-        with open(filepath, "rb") as img:
-            response = requests.post(PREDICT_API_URL, data=img)
-
-        if response.status_code == 200:
-            prediction = response.json().get("prediction", "Erreur")
-        else:
-            prediction = "Erreur de prédiction"
-
-        return jsonify({"prediction": prediction})
-
     return render_template("index.html")
+
+@app.route('/predict_page')
+def predict_view():
+    return render_template('predict.html')
+
+@app.route('/recommend_poster_page')
+def recommend_poster_view():
+    return render_template('recommend_poster.html')
+
+@app.route('/recommend_plot_page')
+def recommend_plot_view():
+    return render_template('recommend_plot.html')
+
+
+
+@app.route("/predict", methods=["POST"])
+def predict():
+    if "file" not in request.files:
+        return jsonify({"error": "Aucun fichier trouvé"}), 400
+
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "Fichier vide"}), 400
+
+    # Sauvegarde temporaire
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+    file.save(filepath)
+
+    with open(filepath, "rb") as img:
+        response = requests.post(PREDICT_API_URL, data=img)
+
+    if response.status_code == 200:
+        prediction = response.json().get("prediction", "Erreur")
+    else:
+        prediction = "Erreur de prédiction"
+
+    return jsonify({"prediction": prediction})
+
 
 
 @app.route("/recommend_poster", methods=["POST"])

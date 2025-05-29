@@ -12,8 +12,7 @@ from torchvision import datasets
 from annoy import AnnoyIndex
 from sklearn.feature_extraction.text import TfidfVectorizer
 from transformers import DistilBertTokenizer, DistilBertModel
-
-
+from models import ClassifieurMovie, ClassifieurResNet18, ClassifieurResNet34
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -27,12 +26,13 @@ model_path = parser.parse_args().model_path
 parser.add_argument('--feature_extraction_path', type=str, help='path to the feature extraction folder', default='./feature_extraction/')
 feature_extraction_path = parser.parse_args().feature_extraction_path
 
-model_Prediction = models.mobilenet_v3_small(pretrained=False)
+#model_Prediction = models.mobilenet_v3_small(pretrained=False)
+model_Prediction = models.mobilenet_v3_small(weights=None)
 model_Prediction.classifier = torch.nn.Linear(576, 10)
-
+model_Prediction = ClassifieurMovie()
 # Load the model for the first Part
 #model.load_state_dict(torch.load(model_path))
-model_Prediction.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+model_Prediction.load_state_dict(torch.load(model_path, map_location=torch.device('cpu'), weights_only=True))
 #model.eval()
 
 model_Prediction.to(device)
@@ -122,11 +122,11 @@ def predict():
     # Make prediction
     with torch.no_grad():
         outputs = model_Prediction(tensor)
-        predicted = outputs.max(1)
+        predicted = torch.argmax(outputs, dim=1).item()
 
-    key = int(predicted[0])
+    #key = int(predicted[0])
 
-    return jsonify({"prediction": genres_dict[key]})
+    return jsonify({"prediction": genres_dict[predicted]})
 
     
 @app.route('/batch_predict', methods=['POST'])
@@ -147,9 +147,11 @@ def batch_predict():
     # Make prediction
     with torch.no_grad():
         outputs = model_Prediction(batch_tensor.to(device))
-        _, predictions = outputs.max(1)
+        predictions = torch.max(outputs, dim=1).cpu()
 
-    return jsonify({"predictions": predictions.tolist()})
+    genres = [genres_dict[pred.item()] for pred in predictions] 
+    
+    return jsonify({"predictions": genres})
 
 
 

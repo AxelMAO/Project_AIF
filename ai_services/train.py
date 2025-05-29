@@ -1,5 +1,6 @@
 import argparse
-from statistics import mean
+import os
+import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 import torch
@@ -8,13 +9,14 @@ from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from data_utils import ImageAndPathDataset, ImageAndPathDataLoader
 from torchvision.datasets.folder import ImageFolder, default_loader, IMG_EXTENSIONS 
-#from model import Classifieur
+from models import ClassifieurMovie, ClassifieurResNet18, ClassifieurResNet34
+from statistics import mean
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import StratifiedKFold
-import os
+
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-import numpy as np
+
 
 
 def train(net, optimizer, loader, writer, epochs=10):
@@ -71,11 +73,11 @@ if __name__=='__main__':
 
     # dataset
     dataset = ImageFolder(root='./../MovieGenre/content/sorted_movie_posters_paligema', transform=transform)
-    #trainset, testset = train_test_split(dataset, test_size=0.2, random_state=42)
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    train_idx, test_idx = next(skf.split(dataset.samples, dataset.targets))
-    trainset = torch.utils.data.Subset(dataset, train_idx)
-    testset = torch.utils.data.Subset(dataset, test_idx)
+    trainset, testset = train_test_split(dataset, test_size=0.3)
+    #skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    #train_idx, test_idx = next(skf.split(dataset.samples, dataset.targets))
+    #trainset = torch.utils.data.Subset(dataset, train_idx)
+    #testset = torch.utils.data.Subset(dataset, test_idx)
 
 
     # dataloaders
@@ -85,19 +87,20 @@ if __name__=='__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # model
-    net = models.mobilenet_v3_small(pretrained=True)
-    net.classifier = nn.Linear(576, 10)
-
+    #net = models.mobilenet_v3_small(pretrained=True)
+    #net.classifier = nn.Linear(576, 10)
+    net = ClassifieurMovie()
 
     #settign net on device
     net.to(device)    
-    optimizer = optim.Adam(net.parameters(), lr=lr)
+    optimizer = optim.Adam(net.parameters(), lr=lr, weight_decay=1e-4)
+    #optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.9, weight_decay=1e-4)
 
     train(net, optimizer, trainloader, writer, epochs=epochs)
     test_acc = test(net, testloader, writer)
     print(f'test accuracy: {test_acc}')
 
-    torch.save(net.state_dict(), 'weights/movie_net.pth')
+    torch.save(net.state_dict(), 'weights/movie_net_mob_none.pth')
 
     """
     #add embeddings to tensorboard
