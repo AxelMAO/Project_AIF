@@ -11,6 +11,7 @@ class ClassifieurMovie(nn.Module):
     def __init__(self, num_classes=10):
         super(ClassifieurMovie, self).__init__()
         self.model = mobilenet3
+        self.features = mobilenet3.features
         # Remplacer la dernière couche pour la classification binaire
         self.model.classifier = nn.Linear(576, num_classes)
         

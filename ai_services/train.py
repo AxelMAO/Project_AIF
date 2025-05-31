@@ -100,7 +100,7 @@ if __name__=='__main__':
     test_acc = test(net, testloader, writer)
     print(f'test accuracy: {test_acc}')
 
-    torch.save(net.state_dict(), 'weights/movie_net_mob_none.pth')
+    torch.save(net.state_dict(), 'weights/movie_net.pth')
 
     """
     #add embeddings to tensorboard

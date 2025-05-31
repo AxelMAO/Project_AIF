@@ -26,6 +26,22 @@
         <p id="predictionText" style="font-weight: bold;"></p>
     </div>
 
+    <div id="explanationContainer" style="margin-top: 20px; display: none;">
+      <h2>Explications XAI</h2>
+      <div>
+          <h3>LIME</h3>
+          <img id="limeImage" style="max-width: 300px;">
+      </div>
+      <div>
+          <h3>Grad-CAM</h3>
+          <img id="gradcamImage" style="max-width: 300px;">
+      </div>
+      <div>
+          <h3>SmoothGrad</h3>
+          <img id="smoothgradImage" style="max-width: 300px;">
+      </div>
+  </div>
+
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script src="{{ url_for('static', filename='predict.js') }}"></script>
 

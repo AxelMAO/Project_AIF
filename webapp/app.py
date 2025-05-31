@@ -11,12 +11,12 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # URL vers les endpoints de l'API backend (conteneur "ai_services")
-#PREDICT_API_URL = "http://ai_services:5000/predict"
-PREDICT_API_URL = "http://127.0.0.1:5000/predict"
-#RECOMMEND_API_URL = "http://ai_services:5000/recommend_poster"
-RECOMMEND_API_URL = "http://127.0.0.1:5000/recommend_poster"
-#RECOMMEND_PLOT_API_URL = "http://ai_services:5000/recommend_plot_movie"
-RECOMMEND_PLOT_API_URL = "http://127.0.0.1:5000/recommend_plot_movie"
+PREDICT_API_URL = "http://ai_services:5000/predict"
+#PREDICT_API_URL = "http://127.0.0.1:5000/predict"
+RECOMMEND_API_URL = "http://ai_services:5000/recommend_poster"
+#RECOMMEND_API_URL = "http://127.0.0.1:5000/recommend_poster"
+RECOMMEND_PLOT_API_URL = "http://ai_services:5000/recommend_plot_movie"
+#RECOMMEND_PLOT_API_URL = "http://127.0.0.1:5000/recommend_plot_movie"
 
 @app.route("/", methods=["GET"])
 def index():
@@ -53,11 +53,15 @@ def predict():
         response = requests.post(PREDICT_API_URL, data=img)
 
     if response.status_code == 200:
-        prediction = response.json().get("prediction", "Erreur")
+        result = response.json()
+        return jsonify({
+            "prediction": result.get("prediction", "Erreur"),
+            "lime_base64": result.get("lime_base64", ""),
+            "smoothgrad_base64": result.get("smoothgrad_base64", ""),
+            "gradcam_base64": result.get("gradcam_base64", "")
+        })
     else:
-        prediction = "Erreur de prédiction"
-
-    return jsonify({"prediction": prediction})
+        return jsonify({"error": "Erreur de prédiction"}), 500
 
 
 
@@ -121,4 +125,4 @@ def recommend_plot():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=9000, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True)

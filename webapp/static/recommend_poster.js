@@ -11,6 +11,8 @@ imageInput.addEventListener("change", function (event) {
             imagePreview.style.display = "block";
         };
         reader.readAsDataURL(file);
+
+        document.getElementById("recommendationImages").style.display = "none";
     }
 });
 
@@ -30,6 +32,7 @@ document.getElementById("recommendButton").addEventListener("click", function ()
     })
         .then(response => response.json())
         .then(data => {
+            document.getElementById("recommendationImages").style.display = "block";
             recommendationImages.innerHTML = "";
             data.recommendations.forEach(path => {
                 const img = document.createElement("img");
